@@ -1,5 +1,5 @@
 import pandas as pd 
-
+from util import timeit
 
 def create_df(data_inp):
 
@@ -87,6 +87,7 @@ def collect_ranges(inp_ranges, df) -> list:
 	return list(set(tuple(i) for i in all_ranges))
 
 
+@timeit
 def star_1(file_name) -> int:
 
 	with open(file_name, 'r') as f:
@@ -119,6 +120,7 @@ def star_1(file_name) -> int:
 	return min(location)
 
 
+@timeit
 def star_2(file_name) -> int:
 
 	with open(file_name, 'r') as f:
