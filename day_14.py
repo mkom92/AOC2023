@@ -1,85 +1,6 @@
-import numpy as np
 from util import timeit
 import re
 import functools
-
-def move(grid, y: int, x: int, direction: tuple) -> list:
-
-	new_y, new_x = y, x
-	n,m = grid.shape
-
-	if direction[0] == 1 or direction[1] == 1:
-		lim = 1
-	else:
-		lim = 0
-
-	if direction[0] != 0:
-		while n - lim > new_y > 0 - lim:
-
-			if grid[new_y + direction[0], new_x] != '.':
-				return [new_y, new_x]
-			else:
-				new_y += direction[0]
-		
-		return [new_y, new_x]
-
-	else:
-		while m - lim > new_x > 0 - lim:
-
-			if grid[new_y, new_x + direction[1]] != '.':
-				return [new_y, new_x]
-			else:
-				new_x += direction[1]
-		
-		return [new_y, new_x]
-
-
-def adjust_grid(grid, direction: tuple):
-
-	n,m = grid.shape
-	rounded_rocks = list(zip(*np.where(grid == 'O')))
-
-	if direction[0] == 1 or direction[1] == 1:
-
-		rounded_rocks = rounded_rocks[::-1]
-
-	for rock in rounded_rocks:
-
-		y,x = rock
-
-		if (direction[0] == -1 and y == 0) or (direction[1] == -1 and x == 0) or (direction[0] == 1 and y == n-1) or (direction[1] == 1 and x == m-1):
-			next
-		else:
-			new_y, new_x = move(grid, y, x, direction)
-
-			grid[y,x] = '.'
-			grid[new_y,new_x] = 'O'
-
-
-@timeit
-def star_1(file_name: str) -> int:
-
-	with open(file_name,'r') as f:
-
-		grid_inp = [[i for i in line.strip()] for line in f.readlines()]
-
-	grid = np.array(grid_inp)
-
-	adjust_grid(grid,(-1,0))
-
-	n,m = grid.shape
-	total_load = 0
-	for mult, row in enumerate(grid):
-
-		total_load += (n-mult) * np.count_nonzero(row == 'O')
-
-	return total_load
-
-
-########################################
-# NEW APPROACH
-########################################
-
 
 @functools.lru_cache(maxsize=None)
 def move_rock(row: str, rock:int, direction: int):
@@ -167,7 +88,6 @@ def tilt_cycle(grid: tuple):
 	grid = switch_grid(grid)
 	grid = tilt_all(grid, 1)
 
-
 	return grid
 
 @timeit
@@ -179,21 +99,53 @@ def new_star_2(file_name: str) -> int:
 
 	cycles = 0
 
-	while cycles < 1000000000: 
+	grids = {}
 
-		grid = tilt_cycle(grid)
+	while cycles < 1000: 
 
 		cycles += 1
+
+		try:
+			grid = grids[grid][0]
+			grids[grid][1].append(cycles)
+
+		except:
+
+			new_grid = tilt_cycle(grid)
+			grids[grid] = [new_grid,[cycles]]
+			grid = new_grid
+
 
 	# 	if cycles % 10000000 == 0:
 
 	# 		print(cycles)
 
+	mult = 0
+	for k,v in grids.items():
+
+		if len(v[1]) > 1:
+			mult += 1
+
+		if mult == 2:
+			cycle_start = v[1][0] - 1
+			cycle_steps = v[1][1] - v[1][0] + 1
+
+			loop_start = 1000000000 - cycle_start - 1
+			last_step = loop_start % cycle_steps 
+
+			mult += 1
+
+		if mult > 2:
+
+			if last_step == 0:
+				grid = v[0]
+				break
+			else:
+				last_step -= 1
 
 	return sum([row.count('O') * (len(grid) - n) for n,row in enumerate(grid)])
 
 if __name__ == '__main__':
 
-	# print(f"Star 1: {star_1('day_14.txt')}")
 	print(f"Star 1 - attempt 2: {new_star_1('day_14.txt')}")
 	print(f"Star 2 - attempt 2: {new_star_2('day_14.txt')}")
