@@ -1,6 +1,7 @@
 import re
-import numpy as np
+from util import timeit
 
+@timeit
 def star(file_name: str, star_num: int) -> int:
 
 	dig_plan = []
@@ -13,15 +14,9 @@ def star(file_name: str, star_num: int) -> int:
 
 			dig_plan.append((p.group('direction'),int(p.group('cube_meters')),p.group('colour')))
 
-
-	current_point = (0,0)
-
-
-
 	nodes = [(0,0)]
 	elements = 0
 	boundry_points = 0
-
 
 	# Shoelace formula + pick's theory
 
